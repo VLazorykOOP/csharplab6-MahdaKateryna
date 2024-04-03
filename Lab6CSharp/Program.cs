@@ -1,14 +1,21 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
-// Базовий клас "Друковане видання"
-public abstract class PrintedPublication
+// Інтерфейс для можливості використання оператора foreach
+public interface IPrintPublication
+{
+    void Show();
+}
+
+// Базовий клас для всіх друкованих видань
+public class PrintPublication : IPrintPublication
 {
     public string Title { get; set; }
     public string Author { get; set; }
     public int Year { get; set; }
 
-    public PrintedPublication(string title, string author, int year)
+    public PrintPublication(string title, string author, int year)
     {
         Title = title;
         Author = author;
@@ -17,79 +24,90 @@ public abstract class PrintedPublication
 
     public virtual void Show()
     {
-        Console.WriteLine($"Назва: {Title}");
-        Console.WriteLine($"Автор: {Author}");
-        Console.WriteLine($"Рік видання: {Year}");
+        Console.WriteLine($"Title: {Title}");
+        Console.WriteLine($"Author: {Author}");
+        Console.WriteLine($"Year: {Year}");
     }
 }
 
-// Похідний клас "Журнал"
-public class Magazine : PrintedPublication
+// Клас для журналів
+public class Magazine : PrintPublication
 {
     public string Issue { get; set; }
 
-    public Magazine(string title, string author, int year, string issue)
-        : base(title, author, year)
+    public Magazine(string title, string author, int year, string issue) : base(title, author, year)
     {
         Issue = issue;
     }
 
     public override void Show()
     {
-        Console.WriteLine("Журнал:");
         base.Show();
-        Console.WriteLine($"Випуск: {Issue}");
+        Console.WriteLine($"Issue: {Issue}");
     }
 }
 
-// Похідний клас "Книга"
-public class Book : PrintedPublication
+// Клас для книг
+public class Book : PrintPublication
 {
-    public int Pages { get; set; }
+    public string Genre { get; set; }
 
-    public Book(string title, string author, int year, int pages)
-        : base(title, author, year)
+    public Book(string title, string author, int year, string genre) : base(title, author, year)
     {
-        Pages = pages;
+        Genre = genre;
     }
 
     public override void Show()
     {
-        Console.WriteLine("Книга:");
         base.Show();
-        Console.WriteLine($"Сторінок: {Pages}");
+        Console.WriteLine($"Genre: {Genre}");
     }
 }
 
-// Похідний клас "Підручник"
+// Клас для підручників
 public class Textbook : Book
 {
     public string Subject { get; set; }
 
-    public Textbook(string title, string author, int year, int pages, string subject)
-        : base(title, author, year, pages)
+    public Textbook(string title, string author, int year, string genre, string subject) : base(title, author, year, genre)
     {
         Subject = subject;
     }
 
     public override void Show()
     {
-        Console.WriteLine("Підручник:");
         base.Show();
-        Console.WriteLine($"Предмет: {Subject}");
+        Console.WriteLine($"Subject: {Subject}");
     }
 }
 
-/// //////////////////////////////////////////////////////////////////////////////////////////
+// Реалізація інтерфейсу IEnumerable для можливості використання оператора foreach
+public class Library : IEnumerable<IPrintPublication>
+{
+    private List<IPrintPublication> publications = new List<IPrintPublication>();
+
+    public void AddPublication(IPrintPublication publication)
+    {
+        publications.Add(publication);
+    }
+
+    public IEnumerator<IPrintPublication> GetEnumerator()
+    {
+        return publications.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+}
+
 
 // Інтерфейс Товар
 public interface IProduct
 {
     string Name { get; set; }
     decimal Price { get; set; }
-    DateTime ProductionDate { get; set; }
-    DateTime ExpiryDate { get; set; }
-
     void ShowInfo();
     bool IsExpired();
 }
@@ -112,10 +130,10 @@ public class Product : IProduct
 
     public void ShowInfo()
     {
-        Console.WriteLine($"Назва: {Name}");
-        Console.WriteLine($"Ціна: {Price}");
-        Console.WriteLine($"Дата виробництва: {ProductionDate.ToShortDateString()}");
-        Console.WriteLine($"Строк придатності: {ExpiryDate.ToShortDateString()}");
+        Console.WriteLine($"Name: {Name}");
+        Console.WriteLine($"Price: {Price}");
+        Console.WriteLine($"Production Date: {ProductionDate.ToShortDateString()}");
+        Console.WriteLine($"Expiry Date: {ExpiryDate.ToShortDateString()}");
     }
 
     public bool IsExpired()
@@ -144,11 +162,11 @@ public class Batch : IProduct
 
     public void ShowInfo()
     {
-        Console.WriteLine($"Назва: {Name}");
-        Console.WriteLine($"Ціна за одиницю: {Price}");
-        Console.WriteLine($"Кількість: {Quantity}");
-        Console.WriteLine($"Дата виробництва: {ProductionDate.ToShortDateString()}");
-        Console.WriteLine($"Строк придатності: {ExpiryDate.ToShortDateString()}");
+        Console.WriteLine($"Name: {Name}");
+        Console.WriteLine($"Price per unit: {Price}");
+        Console.WriteLine($"Quantity: {Quantity}");
+        Console.WriteLine($"Production Date: {ProductionDate.ToShortDateString()}");
+        Console.WriteLine($"Expiry Date: {ExpiryDate.ToShortDateString()}");
     }
 
     public bool IsExpired()
@@ -158,48 +176,27 @@ public class Batch : IProduct
 }
 
 // Клас Комплект
-public class Set : IProduct
+public class Kit : IProduct
 {
-    private List<string> list;
-    private decimal v;
-    private DateTime dateTime1;
-    private DateTime dateTime2;
-
     public string Name { get; set; }
     public decimal Price { get; set; }
-    public DateTime ProductionDate { get; set; }
-    public DateTime ExpiryDate { get; set; }
     public List<Product> Products { get; set; }
 
-    public Set(string name, decimal price, DateTime productionDate, DateTime expiryDate, List<Product> products)
+    public Kit(string name, decimal price, List<Product> products)
     {
         Name = name;
         Price = price;
-        ProductionDate = productionDate;
-        ExpiryDate = expiryDate;
-        Products = products;
-    }
-
-    public Set(List<string> list, decimal v, DateTime dateTime1, DateTime dateTime2, List<Product> products)
-    {
-        this.list = list;
-        this.v = v;
-        this.dateTime1 = dateTime1;
-        this.dateTime2 = dateTime2;
         Products = products;
     }
 
     public void ShowInfo()
     {
-        Console.WriteLine($"Назва комплекту: {Name}");
-        Console.WriteLine($"Загальна ціна: {Price}");
-        Console.WriteLine($"Дата виробництва: {ProductionDate.ToShortDateString()}");
-        Console.WriteLine($"Строк придатності: {ExpiryDate.ToShortDateString()}");
-        Console.WriteLine("Склад:");
+        Console.WriteLine($"Name: {Name}");
+        Console.WriteLine($"Price: {Price}");
+        Console.WriteLine("Products:");
         foreach (var product in Products)
         {
             product.ShowInfo();
-            Console.WriteLine("----------------------");
         }
     }
 
@@ -208,9 +205,11 @@ public class Set : IProduct
         foreach (var product in Products)
         {
             if (product.IsExpired())
+            {
                 return true;
+            }
         }
-        return DateTime.Now > ExpiryDate;
+        return false;
     }
 }
 
@@ -218,54 +217,67 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.OutputEncoding = System.Text.Encoding.UTF8;
-        Console.WriteLine("\t\t\tTask 1 ");
-        Magazine magazine = new Magazine("Моя Україна", "Василь Петров", 2022, "Січень");
+        Console.WriteLine("\t\t\tTask1\n");
+        // Створення об'єктів для тестування
+        Magazine magazine = new Magazine("National Geographic", "Various Authors", 2024, "April");
+        Book book = new Book("To Kill a Mockingbird", "Harper Lee", 1960, "Fiction");
+        Textbook textbook = new Textbook("Introduction to Computer Science", "John Smith", 2020, "Educational", "Computer Science");
+
+        // Виклик методу Show() для кожного об'єкта
+        Console.WriteLine("Magazine:");
         magazine.Show();
 
-        Console.WriteLine();
-
-        Book book = new Book("Таємниці природи", "Олена Коваленко", 2020, 320);
+        Console.WriteLine("\nBook:");
         book.Show();
 
-        Console.WriteLine();
-
-        Textbook textbook = new Textbook("Математика 10 клас", "Іван Сидоренко", 2019, 400, "Математика");
+        Console.WriteLine("\nTextbook:");
         textbook.Show();
 
-
-        /////////////////////////////////////////////////////////////////////////////////////
-
-        Console.WriteLine("\n\t\t\tTask 2 ");
-        int n = 3;  // кількість товарів
+        Console.WriteLine("\n\t\t\tTask2\n");
 
         List<IProduct> products = new List<IProduct>
         {
-            new Product("Молоко", 25.50m, new DateTime(2024, 3, 10), new DateTime(2024, 4, 10)),
-            new Batch("Яблука", 15.00m, 10, new DateTime(2024, 3, 1), new DateTime(2024, 4, 1)),
-            new Set(new List<string>{"Хліб", "Масло"}, 40.00m, new DateTime(2024, 3, 5), new DateTime(2024, 3, 15), new List<Product>
+            new Product("Milk", 25.50m, new DateTime(2024, 3, 1), new DateTime(2024, 4, 1)),
+            new Batch("Apples", 15.00m, 10, new DateTime(2024, 3, 15), new DateTime(2024, 4, 15)),
+            new Kit("Fruit Basket", 100.00m, new List<Product>
             {
-                new Product("Хліб", 20.00m, new DateTime(2024, 3, 5), new DateTime(2024, 3, 15)),
-                new Product("Масло", 20.00m, new DateTime(2024, 3, 3), new DateTime(2024, 3, 20))
+                new Product("Banana", 10.00m, new DateTime(2024, 3, 10), new DateTime(2024, 4, 10)),
+                new Product("Apple", 5.00m, new DateTime(2024, 3, 10), new DateTime(2024, 4, 10))
             })
         };
 
-        // Виведення інформації про всі товари
+        Console.WriteLine("All products:\n");
         foreach (var product in products)
         {
             product.ShowInfo();
-            Console.WriteLine("\n ");
+            Console.WriteLine($"Is Expired: {(product.IsExpired() ? "Yes" : "No")}");
+            Console.WriteLine();
         }
 
-        // Пошук прострочених товарів
-        Console.WriteLine("Прострочені товари:");
+        Console.WriteLine("Expired products:");
         foreach (var product in products)
         {
             if (product.IsExpired())
             {
                 product.ShowInfo();
-                Console.WriteLine("\n ");
+                Console.WriteLine();
             }
+        }
+
+        Console.WriteLine("\n\t\t\tTask3\n");
+
+        Library library = new Library();
+
+        // Додавання друкованих видань до бібліотеки
+        library.AddPublication(new Magazine("National Geographic", "Various Authors", 2024, "April"));
+        library.AddPublication(new Book("To Kill a Mockingbird", "Harper Lee", 1960, "Fiction"));
+        library.AddPublication(new Textbook("Introduction to Computer Science", "John Smith", 2020, "Educational", "Computer Science"));
+
+        // Використання оператора foreach
+        foreach (var publication in library)
+        {
+            publication.Show();
+            Console.WriteLine();
         }
     }
 }
